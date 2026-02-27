@@ -40,7 +40,7 @@ This repository contains ROCm-enabled builds of Triton Inference Server for AMD 
 - **Python Backend** - Done
 - **vLLM Backend** - enabled, upgrading WIP
 - **PyTorch Backend**  - enabled, upgrading WIP
-- **Tensorflow Backend** - enablement WIP
+- **Tensorflow Backend** - Done
 
 ### ROCm-Enabled Repository Branches
 
@@ -58,7 +58,7 @@ The following table lists the ROCm-enabled Triton Inference Server component rep
 | Python Backend | [ROCm/triton-inference-server-python_backend](https://github.com/ROCm/triton-inference-server-python_backend) | `rocm7.2_r25.12` |
 | vLLM Backend | [ROCm/triton-inference-server-vllm_backend](https://github.com/ROCm/triton-inference-server-vllm_backend) | `TBD` |
 | Pytorch Backend | [ROCm/triton-inference-server-pytorch_backend](https://github.com/ROCm/triton-inference-server-pytorch_backend) | `TBD` |
-| Tensorflow Backend | [ROCm/triton-inference-server-tensorflow_backend](https://github.com/ROCm/triton-inference-server-tensorflow_backend) | `TBD` |
+| Tensorflow Backend | [ROCm/triton-inference-server-tensorflow_backend](https://github.com/ROCm/triton-inference-server-tensorflow_backend) | `rocm7.2_r24.03` |
 
 
 ## Build Triton Inference Server
@@ -142,6 +142,7 @@ python3 build.py \
   --endpoint=http \
   --backend=onnxruntime \
   --backend=python \
+  --backend=tensorflow \
   --linux-distro=debian
 ```
 
@@ -151,6 +152,7 @@ python3 build.py \
 - `--endpoint=grpc --endpoint=http`: Enable both HTTP and gRPC inference protocols
 - `--backend=onnxruntime`: Build with onnxruntime backend
 - `--backend=python`: Build with python backend
+- `--backend=tensorflow`: Build with tensorflow backend
 
 
 *The above example builds tritonserver artifact with both onnxruntime and python backends.
