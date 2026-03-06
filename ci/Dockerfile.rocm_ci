@@ -114,6 +114,9 @@ FROM buildenv AS build
 ARG TRITON_INFERENCE_SERVER_VERSION
 ARG BUILD_ONNXRUNTIME
 
+# Allow pip to install packages system-wide (needed for Debian 12+)
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 SHELL ["/bin/bash", "-c"]
 # Pre-build MIGraphX from prefetched source when building OnnxRuntime backend (in-tree ORT needs it)
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/AMDMIGraphX ]; then \
@@ -205,6 +208,8 @@ ENV TRITON_SERVER_VERSION=${TRITON_INFERENCE_SERVER_VERSION}
 ENV TRITON_SERVER_GPU_ENABLED=1
 ENV UCX_MEM_EVENTS=no
 ENV DEBIAN_FRONTEND=noninteractive
+# Allow pip to install packages system-wide (needed for Debian 12+)
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 LABEL com.amd.tritonserver.version="${TRITON_INFERENCE_SERVER_VERSION}"
 
 # Common runtime dependencies (mirrors dockerfile_prepare_container_linux ubuntu path)
