@@ -126,6 +126,50 @@ RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/AMDMIGraphX ]; then \
   cd build && make -j$(nproc) package && dpkg -i *.deb; \
 fi
 
+# ── Build ONNX Runtime with MIGraphX EP (same as DiD gen_ort_dockerfile.py ROCm path) ──
+# Requires MIGraphX already installed under /opt/rocm (previous RUN).
+# Uses pre-fetched /src/onnxruntime (no git clone).
+ARG ONNXRUNTIME_BUILD_CONFIG=Release
+ENV MIGRAPHX_MLIR_USE_SPECIFIC_OPS=attention,dot
+ENV MIGRAPHX_ENABLE_MLIR_GEG_FUSION=1
+ENV MIGRAPHX_ENABLE_REWRITE_DOT=1
+
+RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
+  cd /src/onnxruntime && \
+  pip3 install numpy packaging && \
+  ./build.sh --config ${ONNXRUNTIME_BUILD_CONFIG} --allow_running_as_root \
+    --rocm_home /opt/rocm --use_migraphx --migraphx_home /opt/rocm \
+    --skip_tests --parallel --enable_pybind --build_wheel 2>&1 | tee onnxrt_build.log && \
+  pip3 install ./build/Linux/Release/dist/*.whl --force-reinstall && \
+  cd build/Linux/Release && \
+  cmake --install . --prefix /opt/rocm && \
+  echo "ONNX Runtime installed to /opt/rocm"; \
+fi
+
+# Copy ORT + MIGraphX runtime libs into /opt/onnxruntime for backend (mirror DiD layout)
+RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
+  mkdir -p /opt/onnxruntime/lib /opt/onnxruntime/include /opt/onnxruntime/bin /opt/onnxruntime/test && \
+  SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])") && \
+  cp $SITE_PACKAGES/onnxruntime/capi/libonnxruntime.so.* /opt/onnxruntime/lib/ && \
+  cp $SITE_PACKAGES/onnxruntime/capi/libonnxruntime_providers_shared.so /opt/onnxruntime/lib/ && \
+  cp $SITE_PACKAGES/onnxruntime/capi/libonnxruntime_providers_migraphx.so /opt/onnxruntime/lib/ && \
+  cd /opt/onnxruntime/lib && \
+  ORT_SO=$(ls libonnxruntime.so.* 2>/dev/null | head -1) && \
+  ln -sf $ORT_SO libonnxruntime.so.1 && ln -sf $ORT_SO libonnxruntime.so && \
+  find /usr /opt/rocm /usr/local -name 'libmigraphx*.so*' 2>/dev/null | while read f; do cp -P "$f" /opt/onnxruntime/lib/; done && \
+  cp /opt/rocm/include/onnxruntime/onnxruntime_c_api.h /opt/onnxruntime/include/ && \
+  cp /opt/rocm/include/onnxruntime/onnxruntime_session_options_config_keys.h /opt/onnxruntime/include/ && \
+  cp /opt/rocm/include/onnxruntime/cpu_provider_factory.h /opt/onnxruntime/include/ && \
+  (cp /opt/rocm/include/onnxruntime/onnxruntime_ep_c_api.h /opt/onnxruntime/include/ 2>/dev/null || true) && \
+  echo "$(cat /src/onnxruntime/VERSION_NUMBER 2>/dev/null | tr -d '[:space:]' || echo 'unknown')" > /opt/onnxruntime/ort_onnx_version.txt && \
+  cd /opt/onnxruntime/lib && \
+  for i in $(find . -maxdepth 1 -type f -name '*.so*'); do patchelf --set-rpath '$ORIGIN' $i 2>/dev/null || true; done && \
+  echo "ONNX Runtime artifacts in /opt/onnxruntime"; \
+fi
+
+# Ensure /opt/onnxruntime exists when BUILD_ONNXRUNTIME=OFF so runtime stage COPY always succeeds
+RUN mkdir -p /opt/onnxruntime/lib /opt/onnxruntime/include
+
 RUN set -xe; \
   FC_CORE=( \
     --extra-core-cmake-arg FETCHCONTENT_SOURCE_DIR_REPO-COMMON=/src/common \
@@ -162,11 +206,13 @@ RUN set -xe; \
       --extra-backend-cmake-arg onnxruntime:FETCHCONTENT_SOURCE_DIR_REPO_CORE=/src/triton-inference-server-core \
       --extra-backend-cmake-arg onnxruntime:FETCHCONTENT_SOURCE_DIR_REPO_BACKEND=/src/triton-inference-server-backend \
       --extra-backend-cmake-arg onnxruntime:FETCHCONTENT_SOURCE_DIR_REPO_THIRD_PARTY=/src/triton-inference-server-third_party \
+      --extra-backend-cmake-arg onnxruntime:TRITON_ONNXRUNTIME_LIB_PATHS=/opt/onnxruntime/lib \
+      --extra-backend-cmake-arg onnxruntime:TRITON_ONNXRUNTIME_INCLUDE_PATHS=/opt/onnxruntime/include \
     ); \
-    ORT_REPO_FLAGS=( \
-      --ort-repo "file:///src/onnxruntime" \
-      --migraphx-repo "file:///src/AMDMIGraphX" \
-    ); \
+    # ORT_REPO_FLAGS=( \
+    #   --ort-repo "file:///src/onnxruntime" \
+    #   --migraphx-repo "file:///src/AMDMIGraphX" \
+    # ); \
   fi; \
   python3 /src/triton-inference-server-server/build.py \
     --no-container-build \
@@ -195,13 +241,14 @@ ARG INTEGRATION_JOB_NAME
 ARG INTEGRATION_BUILD_ID
 
 COPY --from=build /opt/tritonserver/ /opt/tritonserver/
+COPY --from=build /opt/onnxruntime /opt/onnxruntime
 
 # ROCm environment — must be re-declared in each stage (not inherited from build).
 ENV ROCM_PATH=/opt/rocm
 ENV HIP_PATH=/opt/rocm
 ENV CMAKE_PREFIX_PATH=/opt/rocm:/opt/rocm/lib/cmake
 ENV PATH=/opt/tritonserver/bin:/opt/rocm/bin:${PATH}
-ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/rocm/lib
+ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib
 
 # Triton server metadata
 ENV TRITON_SERVER_VERSION=${TRITON_INFERENCE_SERVER_VERSION}
