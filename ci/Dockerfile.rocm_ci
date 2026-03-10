@@ -5,7 +5,7 @@ ARG TRITON_INFERENCE_SERVER_VERSION=2.64.0
 # /src/AMDMIGraphX to be pre-fetched (prefetch_sources.sh or manifest). For
 # air-gapped builds the onnxruntime_backend must build ORT in-tree from
 # file:///src/... without invoking docker.
-ARG BUILD_ONNXRUNTIME=OFF
+ARG BUILD_ONNXRUNTIME=ON
 ARG BASE_IMAGE=rocm/dev-ubuntu-${UBUNTU_VERSION}:${ROCM_VERSION}-complete
 
 # ── Stage 1a: build environment (deps + sources; no build.py) ───────────────────
@@ -113,6 +113,7 @@ FROM buildenv AS build
 
 ARG TRITON_INFERENCE_SERVER_VERSION
 ARG BUILD_ONNXRUNTIME
+ARG MAMBA_ENV_NAME=base
 
 # Allow pip to install packages system-wide (needed for Debian 12+)
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
@@ -120,7 +121,7 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 SHELL ["/bin/bash", "-c"]
 # Pre-build MIGraphX from prefetched source when building OnnxRuntime backend (in-tree ORT needs it)
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/AMDMIGraphX ]; then \
-  pip3 install --no-cache-dir "https://github.com/RadeonOpenCompute/rbuild/archive/master.tar.gz" && \
+  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install --no-cache-dir "https://github.com/RadeonOpenCompute/rbuild/archive/master.tar.gz" && \
   cd /src/AMDMIGraphX && \
   rbuild build -d depend -B build -DMIGRAPHX_ENABLE_PYTHON=OFF -DGPU_TARGETS=gfx942 2>&1 | tee migraphx_build.log && \
   cd build && make -j$(nproc) package && dpkg -i *.deb; \
@@ -129,6 +130,7 @@ fi
 # ── Build ONNX Runtime with MIGraphX EP (same as DiD gen_ort_dockerfile.py ROCm path) ──
 # Requires MIGraphX already installed under /opt/rocm (previous RUN).
 # Uses pre-fetched /src/onnxruntime (no git clone).
+# Use micromamba env (same Python as buildenv) so ORT wheel matches Triton build.
 ARG ONNXRUNTIME_BUILD_CONFIG=Release
 ENV MIGRAPHX_MLIR_USE_SPECIFIC_OPS=attention,dot
 ENV MIGRAPHX_ENABLE_MLIR_GEG_FUSION=1
@@ -136,11 +138,11 @@ ENV MIGRAPHX_ENABLE_REWRITE_DOT=1
 
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   cd /src/onnxruntime && \
-  pip3 install numpy packaging && \
-  ./build.sh --config ${ONNXRUNTIME_BUILD_CONFIG} --allow_running_as_root \
+  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install --no-cache-dir numpy packaging && \
+  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} ./build.sh --config ${ONNXRUNTIME_BUILD_CONFIG} --allow_running_as_root \
     --rocm_home /opt/rocm --use_migraphx --migraphx_home /opt/rocm \
     --skip_tests --parallel --enable_pybind --build_wheel 2>&1 | tee onnxrt_build.log && \
-  pip3 install ./build/Linux/Release/dist/*.whl --force-reinstall && \
+  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install ./build/Linux/Release/dist/*.whl --force-reinstall && \
   cd build/Linux/Release && \
   cmake --install . --prefix /opt/rocm && \
   echo "ONNX Runtime installed to /opt/rocm"; \
@@ -234,11 +236,15 @@ RUN set -xe; \
 # ── Stage 2: runtime image (the shippable artifact) ──────────────────────────
 # Package list mirrors what build.py's dockerfile_prepare_container_linux()
 # generates for: enable_rocm=True, linux_distro=ubuntu, backends=[python, onnxruntime].
+# Python is provided by a micromamba env (same version as build) so the server wheel loads.
 FROM ${BASE_IMAGE} AS runtime
 
 ARG TRITON_INFERENCE_SERVER_VERSION
 ARG INTEGRATION_JOB_NAME
 ARG INTEGRATION_BUILD_ID
+# Must match buildenv's PYTHON_VERSION so the built wheel (e.g. cpython-312) loads at runtime.
+ARG PYTHON_VERSION=3.12
+ARG MAMBA_ENV_NAME=base
 
 COPY --from=build /opt/tritonserver/ /opt/tritonserver/
 COPY --from=build /opt/onnxruntime /opt/onnxruntime
@@ -247,39 +253,47 @@ COPY --from=build /opt/onnxruntime /opt/onnxruntime
 ENV ROCM_PATH=/opt/rocm
 ENV HIP_PATH=/opt/rocm
 ENV CMAKE_PREFIX_PATH=/opt/rocm:/opt/rocm/lib/cmake
-ENV PATH=/opt/tritonserver/bin:/opt/rocm/bin:${PATH}
 ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib
+
+# Micromamba env is default Python (same as build stage); env lives at .../envs/base/bin.
+ENV MAMBA_ROOT_PREFIX=/root/micromamba
+ENV CONDA_PREFIX=/root/micromamba/envs/${MAMBA_ENV_NAME}
+ENV CONDA_DEFAULT_ENV=${MAMBA_ENV_NAME}
+ENV PATH=/root/micromamba/envs/${MAMBA_ENV_NAME}/bin:/root/micromamba/bin:/opt/tritonserver/bin:/opt/rocm/bin:${PATH}
 
 # Triton server metadata
 ENV TRITON_SERVER_VERSION=${TRITON_INFERENCE_SERVER_VERSION}
 ENV TRITON_SERVER_GPU_ENABLED=1
 ENV UCX_MEM_EVENTS=no
 ENV DEBIAN_FRONTEND=noninteractive
-# Allow pip to install packages system-wide (needed for Debian 12+)
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
 LABEL com.amd.tritonserver.version="${TRITON_INFERENCE_SERVER_VERSION}"
 
-# Common runtime dependencies (mirrors dockerfile_prepare_container_linux ubuntu path)
+# Common runtime deps + curl for micromamba. Python comes from micromamba (match build).
 # libgomp1             — onnxruntime backend
 # libarchive-dev       — python backend (libarchive used by stub loader)
-# python3-wheel/setuptools/dev — python backend
 # libjemalloc-dev      — tcmalloc/jemalloc performance allocator
 # libcurl4-openssl-dev — HTTP filesystem / S3 support
+# libssh2-1            — curl SSH/SFTP support (required by libcurl if built with libssh2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
         libb64-0d \
         libcurl4-openssl-dev \
+        libssh2-1 \
         libgoogle-perftools-dev \
         libjemalloc-dev \
         libnuma-dev \
         libgomp1 \
-        python3-pip \
-        python3-wheel \
-        python3-setuptools \
-        libpython3-dev \
         libarchive-dev \
-    && pip3 install --no-cache-dir "numpy<2" virtualenv \
-    && pip3 install --no-cache-dir /opt/tritonserver/python/*.whl 2>/dev/null || true \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -L micro.mamba.pm/install.sh | bash \
+    && ~/.local/bin/micromamba install -n ${MAMBA_ENV_NAME} python=${PYTHON_VERSION} -c conda-forge --override-channels -y \
+    && ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip install --no-cache-dir "numpy<2" virtualenv \
+    && ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip install --no-cache-dir /opt/tritonserver/python/*.whl \
+    && ~/.local/bin/micromamba clean -afy
+
+# Activate micromamba base env for all shells (non-interactive and interactive).
+RUN ~/.local/bin/micromamba shell init --shell bash --root-prefix /root/micromamba \
+    && echo "micromamba activate ${MAMBA_ENV_NAME}" >> /root/.bashrc
 
 # ROCm entrypoint — sources env setup files from entrypoint.d/ before exec.
 # Mirrors the COPY docker/cpu_only/ + ENTRYPOINT that build.py generates for ROCm.
