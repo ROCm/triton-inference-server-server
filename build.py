@@ -1184,15 +1184,23 @@ RUN python3 -m pip install build
 SHELL ["cmd", "/S", "/C"]
 """
     else:
-        # docker dependencies are different for debian and ubuntu linux distro
-        docker_apt_distro = (
-            "debian" if getattr(FLAGS, "linux_distro", "ubuntu") == "debian" else "ubuntu"
+        # ROCm + Ubuntu base image (Dockerfile.ubuntu24.04_rocm7.2) already has the right Docker client; do not update
+        need_docker_install = not (
+            getattr(FLAGS, "enable_rocm", False)
+            and getattr(FLAGS, "linux_distro", "ubuntu") == "ubuntu"
         )
-        df += """
+        if need_docker_install:
+            # docker dependencies are different for debian and ubuntu linux distro
+            docker_apt_distro = (
+                "debian" if getattr(FLAGS, "linux_distro", "ubuntu") == "debian" else "ubuntu"
+            )
+            df += """
 # Ensure apt-get won't prompt for selecting options
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install docker docker buildx
+"""
+            df += """
 RUN apt-get update \\
       && apt-get install -y ca-certificates curl gnupg \\
       && install -m 0755 -d /etc/apt/keyrings \\
@@ -1203,10 +1211,18 @@ RUN apt-get update \\
           "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \\
           tee /etc/apt/sources.list.d/docker.list > /dev/null \\
       && apt-get update \\
+      && (apt-get remove -y docker-ce docker-ce-cli 2>/dev/null || true) \\
       && apt-get install -y docker.io docker-buildx-plugin
 """.format(
-            docker_apt_distro=docker_apt_distro
-        )
+                docker_apt_distro=docker_apt_distro
+            )
+        else:
+            df += """
+# Ensure apt-get won't prompt for selecting options
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Skip Docker install: ROCm Ubuntu base image already has Docker client 24.0.x (API 1.43)
+"""
         df += """
 # libcurl4-openSSL-dev is needed for GCS
 # python3-dev is needed by Torchvision
@@ -1900,17 +1916,13 @@ LABEL com.nvidia.build.ref={}
 
 
 def get_base_image_rocm_debian():
-    """Return base image for ROCm Debian: vllm image if --install-vllm, else minimal ROCm."""
-    return (
-        "localhost/debian12_rocm7.2_vllm"
-        if getattr(FLAGS, "install_vllm", False)
-        else "localhost/debian12_rocm7.2"
-    )
+    """Return base image for ROCm Debian"""
+    return "localhost/debian12_rocm7.2"
 
 
 def get_base_image_rocm_ubuntu():
-    """Return base image for ROCm Ubuntu (onnxruntime and python backends)."""
-    return "rocm/dev-ubuntu-22.04:7.2-complete"
+    """Return base image for ROCm Ubuntu"""
+    return "localhost/ubuntu24.04_rocm7.2"
 
 
 def create_build_dockerfiles(
@@ -3067,12 +3079,6 @@ if __name__ == "__main__":
         "--enable-rocm", action="store_true", required=False, help="Enable AMD GPU support."
     )
     parser.add_argument(
-        "--install-vllm",
-        action="store_true",
-        required=False,
-        help="Use localhost/debian12_rocm7.2_vllm as base for ROCm Debian (onnxruntime and python backends). If false, use localhost/debian12_rocm7.2.",
-    )
-    parser.add_argument(
         "--linux-distro",
         type=str,
         required=False,
@@ -3206,7 +3212,7 @@ if __name__ == "__main__":
         "--ort-branch",
         required=False,
         type=str,
-        default="add_padded_batch",
+        default="target_batch_compile",
         help="ONNX Runtime (ROCm) git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
@@ -3220,7 +3226,7 @@ if __name__ == "__main__":
         "--migraphx-branch",
         required=False,
         type=str,
-        default="concat_ai",
+        default="release/rocm-rel-7.2",
         help="MIGraphX git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
