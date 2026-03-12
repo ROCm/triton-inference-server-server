@@ -110,9 +110,14 @@ endif()
 find_package(re2 REQUIRED)
 
 # Boost (header-only for triton_signal.cc stacktrace)
+# Debian: tarball install is header-only (no BoostConfig.cmake); use FindBoost module.
+# Ubuntu: distro libboost-dev provides BoostConfig.cmake; find_package uses config mode.
 #
-find_package(Boost 1.78 REQUIRED)
-message(STATUS "Using Boost ${Boost_VERSION}")
+if(TRITON_LINUX_DISTRO STREQUAL "debian")
+  set(Boost_NO_BOOST_CMAKE ON)
+endif()
+# find_package(Boost 1.78 REQUIRED)
+# message(STATUS "Using Boost ${Boost_VERSION}")
 
 #
 # tritonserver executable
@@ -182,7 +187,7 @@ else()
 target_include_directories(
   main
   PRIVATE
-    ${Boost_INCLUDE_DIRS}
+    # ${Boost_INCLUDE_DIRS}
 )
 
 set(LIB_DIR "lib")
