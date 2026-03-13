@@ -119,12 +119,14 @@ ARG MAMBA_ENV_NAME=base
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 SHELL ["/bin/bash", "-c"]
-# Pre-build MIGraphX from prefetched source when building OnnxRuntime backend (in-tree ORT needs it)
-RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/AMDMIGraphX ]; then \
-  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install --no-cache-dir "https://github.com/RadeonOpenCompute/rbuild/archive/master.tar.gz" && \
-  cd /src/AMDMIGraphX && \
-  rbuild build -d depend -B build -DMIGRAPHX_ENABLE_PYTHON=OFF -DGPU_TARGETS=gfx942 2>&1 | tee migraphx_build.log && \
-  cd build && make -j$(nproc) package && dpkg -i *.deb; \
+# Install MIGraphX from ROCm apt packages so ORT (built in the next step) links
+# against the same versioned .so files that ship in the runtime image.
+# We do NOT build MIGraphX from source: the in-tree rbuild produces a different
+# version than the ROCm apt package, causing a runtime ABI mismatch.
+RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ]; then \
+  apt-get update && \
+  apt-get install -y --no-install-recommends migraphx migraphx-dev && \
+  rm -rf /var/lib/apt/lists/*; \
 fi
 
 # ── Build ONNX Runtime with MIGraphX EP (same as DiD gen_ort_dockerfile.py ROCm path) ──
@@ -149,6 +151,8 @@ RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
 fi
 
 # Copy ORT + MIGraphX runtime libs into /opt/onnxruntime for backend (mirror DiD layout)
+# NOTE: when this step's command changes, it busts the BuildKit layer cache.
+# v2: use apt-installed MIGraphX (matches ORT build; no in-tree rbuild version mismatch)
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   mkdir -p /opt/onnxruntime/lib /opt/onnxruntime/include /opt/onnxruntime/bin /opt/onnxruntime/test && \
   SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])") && \
@@ -159,6 +163,9 @@ RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   ORT_SO=$(ls libonnxruntime.so.* 2>/dev/null | head -1) && \
   ln -sf $ORT_SO libonnxruntime.so.1 && ln -sf $ORT_SO libonnxruntime.so && \
   find /usr /opt/rocm /usr/local -name 'libmigraphx*.so*' 2>/dev/null | while read f; do cp -P "$f" /opt/onnxruntime/lib/; done && \
+  (for pkg in migraphx libmigraphx libmigraphx-dev; do dpkg -L $$pkg 2>/dev/null | grep -E 'libmigraphx.*\.so'; done | while read f; do [ -e "$$f" ] && cp -P "$$f" /opt/onnxruntime/lib/; done) || true && \
+  cp -P /usr/local/lib/libmigraphx*.so* /opt/onnxruntime/lib/ 2>/dev/null || true && \
+  cp -P /opt/rocm/lib/libmigraphx*.so* /opt/onnxruntime/lib/ 2>/dev/null || true && \
   cp /opt/rocm/include/onnxruntime/onnxruntime_c_api.h /opt/onnxruntime/include/ && \
   cp /opt/rocm/include/onnxruntime/onnxruntime_session_options_config_keys.h /opt/onnxruntime/include/ && \
   cp /opt/rocm/include/onnxruntime/cpu_provider_factory.h /opt/onnxruntime/include/ && \
@@ -166,6 +173,9 @@ RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   echo "$(cat /src/onnxruntime/VERSION_NUMBER 2>/dev/null | tr -d '[:space:]' || echo 'unknown')" > /opt/onnxruntime/ort_onnx_version.txt && \
   cd /opt/onnxruntime/lib && \
   for i in $(find . -maxdepth 1 -type f -name '*.so*'); do patchelf --set-rpath '$ORIGIN' $i 2>/dev/null || true; done && \
+  if [ -f libonnxruntime_providers_migraphx.so ] && [ -z "$$(ls libmigraphx*.so* 2>/dev/null)" ]; then \
+    echo "ERROR: MIGraphX provider present but no libmigraphx*.so* in /opt/onnxruntime/lib" >&2; exit 1; \
+  fi && \
   echo "ONNX Runtime artifacts in /opt/onnxruntime"; \
 fi
 
@@ -253,7 +263,7 @@ COPY --from=build /opt/onnxruntime /opt/onnxruntime
 ENV ROCM_PATH=/opt/rocm
 ENV HIP_PATH=/opt/rocm
 ENV CMAKE_PREFIX_PATH=/opt/rocm:/opt/rocm/lib/cmake
-ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib
+ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib:/root/micromamba/lib
 
 # Micromamba env is default Python (same as build stage); env lives at .../envs/base/bin.
 ENV MAMBA_ROOT_PREFIX=/root/micromamba
