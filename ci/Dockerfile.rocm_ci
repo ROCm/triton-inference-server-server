@@ -140,7 +140,7 @@ ENV MIGRAPHX_ENABLE_REWRITE_DOT=1
 
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   cd /src/onnxruntime && \
-  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install --no-cache-dir numpy packaging && \
+  ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} pip3 install --no-cache-dir -r requirements.txt && \
   ~/.local/bin/micromamba run -n ${MAMBA_ENV_NAME} ./build.sh --config ${ONNXRUNTIME_BUILD_CONFIG} --allow_running_as_root \
     --rocm_home /opt/rocm --use_migraphx --migraphx_home /opt/rocm \
     --skip_tests --parallel --enable_pybind --build_wheel 2>&1 | tee onnxrt_build.log && \
@@ -152,7 +152,7 @@ fi
 
 # Copy ORT + MIGraphX runtime libs into /opt/onnxruntime for backend (mirror DiD layout)
 # NOTE: when this step's command changes, it busts the BuildKit layer cache.
-# v2: use apt-installed MIGraphX (matches ORT build; no in-tree rbuild version mismatch)
+# v5: bust cache – use dpkg -L to find MIGraphX libs (avoids glob/symlink issues with /opt/rocm-*)
 RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   mkdir -p /opt/onnxruntime/lib /opt/onnxruntime/include /opt/onnxruntime/bin /opt/onnxruntime/test && \
   SITE_PACKAGES=$(python3 -c "import site; print(site.getsitepackages()[0])") && \
@@ -162,10 +162,7 @@ RUN if [ "${BUILD_ONNXRUNTIME}" = "ON" ] && [ -d /src/onnxruntime ]; then \
   cd /opt/onnxruntime/lib && \
   ORT_SO=$(ls libonnxruntime.so.* 2>/dev/null | head -1) && \
   ln -sf $ORT_SO libonnxruntime.so.1 && ln -sf $ORT_SO libonnxruntime.so && \
-  find /usr /opt/rocm /usr/local -name 'libmigraphx*.so*' 2>/dev/null | while read f; do cp -P "$f" /opt/onnxruntime/lib/; done && \
-  (for pkg in migraphx libmigraphx libmigraphx-dev; do dpkg -L $$pkg 2>/dev/null | grep -E 'libmigraphx.*\.so'; done | while read f; do [ -e "$$f" ] && cp -P "$$f" /opt/onnxruntime/lib/; done) || true && \
-  cp -P /usr/local/lib/libmigraphx*.so* /opt/onnxruntime/lib/ 2>/dev/null || true && \
-  cp -P /opt/rocm/lib/libmigraphx*.so* /opt/onnxruntime/lib/ 2>/dev/null || true && \
+  for pkg in migraphx migraphx-dev; do dpkg -L $$pkg 2>/dev/null; done | grep 'libmigraphx.*\.so' | while read f; do [ -e "$$f" ] && cp -P "$$f" /opt/onnxruntime/lib/; done && \
   cp /opt/rocm/include/onnxruntime/onnxruntime_c_api.h /opt/onnxruntime/include/ && \
   cp /opt/rocm/include/onnxruntime/onnxruntime_session_options_config_keys.h /opt/onnxruntime/include/ && \
   cp /opt/rocm/include/onnxruntime/cpu_provider_factory.h /opt/onnxruntime/include/ && \
@@ -263,7 +260,7 @@ COPY --from=build /opt/onnxruntime /opt/onnxruntime
 ENV ROCM_PATH=/opt/rocm
 ENV HIP_PATH=/opt/rocm
 ENV CMAKE_PREFIX_PATH=/opt/rocm:/opt/rocm/lib/cmake
-ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib:/root/micromamba/lib
+ENV LD_LIBRARY_PATH=/opt/tritonserver/lib:/opt/onnxruntime/lib:/opt/rocm/lib:/opt/rocm/lib/migraphx/lib:/root/micromamba/lib
 
 # Micromamba env is default Python (same as build stage); env lives at .../envs/base/bin.
 ENV MAMBA_ROOT_PREFIX=/root/micromamba
@@ -294,6 +291,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libnuma-dev \
         libgomp1 \
         libarchive-dev \
+        migraphx \
     && rm -rf /var/lib/apt/lists/* \
     && curl -L micro.mamba.pm/install.sh | bash \
     && ~/.local/bin/micromamba install -n ${MAMBA_ENV_NAME} python=${PYTHON_VERSION} -c conda-forge --override-channels -y \
