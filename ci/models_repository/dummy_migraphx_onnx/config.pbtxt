@@ -1,6 +1,6 @@
 name: "dummy_migraphx_onnx"
 backend: "onnxruntime"
-max_batch_size: 8192
+max_batch_size: 64
 
 dynamic_batching {
     max_queue_delay_microseconds: 300
@@ -19,7 +19,7 @@ optimization {
             name: "migraphx"
             parameters: {
                 key: "migraphx_max_dynamic_batch"
-                value: "8192"
+                value: "64"
             }
         }
     }
@@ -33,5 +33,7 @@ output: [
 ]
 
 instance_group [
-    { kind: KIND_GPU, count: 128, gpus: [0] }
+    { kind: KIND_GPU, count: 2, gpus: [0] }
 ]
+
+parameters: { key: "intra_op_num_threads", value: "4" }
