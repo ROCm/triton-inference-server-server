@@ -24,3 +24,5 @@ output: [
 instance_group [
     { kind: KIND_CPU, count: 1 }
 ]
+
+parameters: { key: "intra_op_num_threads", value: "4" }
