@@ -64,10 +64,10 @@ ROCm, and all other requirements.
 
 3. The prebuilt image contains the Triton Server executable, required shared libraries, backends, and repository agents in the following locations:
 
-- Triton Inference Server executable: ``/opt/tritonserver/bin``
-- Shared libraries: ``/opt/tritonserver/lib``
-- Backends: ``/opt/tritonserver/backends``
-- Repository agents: ``/opt/tritonserver/repoagents``
+   - Triton Inference Server executable: ``/opt/tritonserver/bin``
+   - Shared libraries: ``/opt/tritonserver/lib``
+   - Backends: ``/opt/tritonserver/backends``
+   - Repository agents: ``/opt/tritonserver/repoagents``
 
 .. _build-triton-inference-server-rocm-docker-image:
 
@@ -103,12 +103,12 @@ Triton Inference Server on ROCm can be run directly by setting up a Docker conta
       --backend=python \
       --linux-distro=ubuntu
 
-3. Set your build options as follows:
+3. Ensure your build options are set as follows:
 
-- ``--enable-rocm``: Enable ROCm support.
-- ``--endpoint``: Build with HTTP and gRPC endpoints.
-- ``--backend=onnxruntime`` / ``--backend=python``: Build backends into the server.
-- ``--linux-distro``: Build on Ubuntu 24.04.
+   - ``--enable-rocm``: Enable ROCm support.
+   - ``--endpoint``: Build with HTTP and gRPC endpoints.
+   - ``--backend=onnxruntime`` / ``--backend=python``: Build backends into the server.
+   - ``--linux-distro``: Build on Ubuntu 24.04.
 
 4. The above settings build a Triton server with both ONNX Runtime and Python backends enabled.
 After the build completes, you can run the Docker container using the same command shown in the
