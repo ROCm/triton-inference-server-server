@@ -132,4 +132,4 @@ Expected output:
 
    25.12
 
-If you see this version string, Triton Inference Server ``25.12`` has been installed successfully. You can now use Triton Inference Server for model serving.
+If you see the version string above, Triton Inference Server ``25.12`` has been installed successfully. You can now use Triton Inference Server for model serving.

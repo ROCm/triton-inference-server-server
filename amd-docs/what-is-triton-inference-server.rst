@@ -8,11 +8,11 @@
 What is Triton Inference Server?
 ********************************************************************
 
-`Triton Inference Server <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__ is a highly
-scalable inference serving platform that supports multiple backends and is optimized for
-production LLM workloads. Triton Inference Server on ROCm integrates AMD ROCm libraries, optimized kernel backends, and
-expanded support for LLM inference, providing efficient execution paths for transformer‑based
-models.
+Triton Inference Server is a highly scalable inference serving platform, developed upstream by
+`NVIDIA <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__,
+that supports multiple backends and is optimized for production LLM workloads. Triton Inference
+Server on ROCm integrates AMD ROCm libraries, optimized kernel backends, and expanded support
+for LLM inference, providing efficient execution paths for transformer‑based models.
 
 Features and use cases
 ====================================================================
@@ -26,8 +26,8 @@ Features and use cases
 Triton Inference Server provides the following key features:
 
 - **Multi-Framework Backends:** Serve models from PyTorch, TensorFlow, ONNX Runtime,
-  OpenVINO, and the Python backend, with CPU and GPU execution including ROCm-enabled
-  backends (e.g., PyTorch-ROCm, ONNX Runtime ROCm EP) for AMD Instinct GPUs.
+  OpenVINO, and the Python backend, with CPU and GPU execution, including ROCm-enabled
+  backends (for example, PyTorch-ROCm, ONNX Runtime ROCm EP) for AMD Instinct GPUs.
 
 - **Dynamic and Sequence Batching:** Automatically batch individual requests to
   improve throughput while meeting latency targets, with sequence batching for
@@ -37,7 +37,7 @@ Triton Inference Server provides the following key features:
   device to saturate hardware, isolate tenants, and tune latency/throughput trade-offs.
 
 - **Model Repository and Versioning:** Manage models stored on local filesystems or
-  object storage (e.g., S3, GCS, Azure Blob), with hot reload, versioning, and a
+  object storage (for example, S3, GCS, and Azure Blob), with hot reload, versioning, and a
   model control API for lifecycle management.
 
 - **Ensembles and Pipelines:** Compose end-to-end inference graphs for pre/post-processing
@@ -47,10 +47,10 @@ Triton Inference Server provides the following key features:
   inference, with support for streaming and shared-memory IPC for lower overhead.
 
 - **Observability and Tooling:** Export Prometheus metrics, traces, and logs; use
-  perf analyzer/model analyzer to size instances, tune batching, and validate SLAs.
+  perf analyzer to size instances, tune batching, and validate SLAs.
 
 - **Cloud-Native Deployment:** Ship as Docker images with Helm charts and Kubernetes
-  integrations (e.g., KServe), supporting autoscaling, canary rollouts, and
+  integrations (for example, KServe), supporting autoscaling, canary rollouts, and
   multi-tenant isolation.
 
 - **Extensibility with Python/Custom Backends:** Implement custom backends and
@@ -86,7 +86,7 @@ Why Triton Inference Server?
 
 Triton Inference Server is well suited for production ML/AI serving for the following reasons:
 
-- **Unified serving stack across frameworks:** Serve ONNX and third party models
+- **Unified serving stack across frameworks:** Serve ONNX and third-party models
   (and custom runtimes via Python) on AMD Instinct GPUs without bespoke
   per-framework services.
 
@@ -94,7 +94,7 @@ Triton Inference Server is well suited for production ML/AI serving for the foll
   batching, and concurrent instances help meet strict SLAs while maximizing GPU use.
 
 - **ROCm performance and flexibility:** Leverage FP16/BF16 execution and HIP-accelerated
-  kernels on MI300 series GPUs, with portable deployment from on-prem to cloud.
+  kernels on Instinct MI300 series GPUs, with portable deployment from on-prem to cloud.
 
 - **Enterprise-ready operations:** Cloud-native packaging, rich telemetry, and model
   lifecycle management streamline production deployments at scale.

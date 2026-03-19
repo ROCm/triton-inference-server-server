@@ -107,7 +107,7 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
 
 3. Send an inference request with ``perf_analyzer``.
 
-   In a separate terminal, you can use Triton’s perf_analyzer to validate and measure performance. If perf_analyzer is available in your image, run:
+   In a separate terminal, you can use Triton’s ``perf_analyzer`` to validate and measure performance. If perf_analyzer is available in your image, run:
 
    .. code-block:: bash
 
@@ -118,11 +118,11 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
         rocm/tritonserver:25.12-rocm7.2 \
         perf_analyzer -m finalnet -b 8 --concurrency-range 1:8 --input-data zero --shape input:1024
 
-   If your server image does not include perf_analyzer, use a Triton SDK/clients image that provides it, or install the Triton Python client and run a small test script as shown next.
+   If your server image does not include perf_analyzer, use a Triton SDK/clients image that provides it, or install the Triton Python client and run a small test script as shown below.
 
 4. (Alternative) Send a request via Triton’s Python client.
 
-   Save the following Python client and run it in an environment with ``tritonclient[http]`` installed (``pip install tritonclient[http]``).
+   Save the following Python client and run it in an environment with ``tritonclient[http]`` installed (using ``pip install tritonclient[http]``).
 
    .. code-block:: python
 
@@ -148,6 +148,8 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
       out = result.as_numpy("output")
       print("Output shape:", out.shape)
       print("First row (should be zeros):", out[0][:8])
+
+   Then run the script:
 
    .. code-block:: bash
 

@@ -12,12 +12,12 @@ With Triton Inference Server on ROCm, you can deploy multi‑framework, GPU‑ac
 AMD Instinct GPUs, enabling low‑latency, elastic inference for production AI services such as real‑time
 large language model chat and high‑throughput computer vision analytics.
 
-`Triton Inference Server <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__ is a highly
-scalable inference serving platform that supports multiple backends and is optimized for
-production LLM workloads. It delivers optimized performance for many query types, including real time, batched,
-ensembles and audio/video streaming. Triton Inference Server on ROCm integrates AMD ROCm libraries, optimized kernel
-backends, and expanded support for LLM inference, providing efficient execution paths for transformer‑based
-models.
+Triton Inference Server is a highly scalable inference serving platform, developed upstream by
+`NVIDIA <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__, 
+that supports multiple backends and is optimized for production LLM workloads. It delivers optimized
+performance for many query types, including real-time, batched, ensembles, and audio/video streaming.
+Triton Inference Server on ROCm integrates AMD ROCm libraries, optimized kernel backends, and
+expanded support for LLM inference, providing efficient execution paths for transformer‑based models.
 
 .. note::
 
