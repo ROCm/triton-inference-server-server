@@ -34,7 +34,6 @@ fi
 source common.sh
 source ../common/util.sh
 
-TRITON_REPO_ORGANIZATION=${TRITON_REPO_ORGANIZATION:="http://github.com/triton-inference-server"}
 BASE_SERVER_ARGS="--model-repository=${MODELDIR}/models --log-verbose=1 --disable-auto-complete-config"
 PYTHON_BACKEND_BRANCH=$PYTHON_BACKEND_REPO_TAG
 SERVER_ARGS=$BASE_SERVER_ARGS
@@ -119,7 +118,8 @@ cd python_backend && rm -rf install build && mkdir build && cd build && \
         -DTRITON_REPO_ORGANIZATION:STRING=${TRITON_REPO_ORGANIZATION} \
         -DTRITON_COMMON_REPO_TAG:STRING=${TRITON_COMMON_REPO_TAG} \
         -DTRITON_CORE_REPO_TAG:STRING=${TRITON_CORE_REPO_TAG} \
-        -DTRITON_BACKEND_REPO_TAG:STRING=${TRITON_BACKEND_REPO_TAG} .. && \
+        -DTRITON_BACKEND_REPO_TAG:STRING=${TRITON_BACKEND_REPO_TAG} \
+        ${TRITON_ROCM_CMAKE_ARG} .. && \
     make -j16 triton-shm-monitor install
 cp $PWD/install/backends/python/triton_shm_monitor.cpython-* /opt/tritonserver/qa/common/.
 set +e
