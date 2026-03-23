@@ -323,7 +323,7 @@ class BuildScript:
         # reference onto a new branch we name "tritonbuildref".
         if tag.startswith("pull/"):
             self.cmd(
-                f"  git clone --recursive --depth=1 {org}/{repo}.git {subdir}; git --git-dir {subdir}/.git log --oneline -1",
+                f"  git clone --recursive --depth=1 {org}/{repo}.git {subdir}; git --no-pager --git-dir {subdir}/.git log --oneline -1",
                 check_exitcode=True,
             )
             self.cmd("}" if target_platform() == "windows" else "fi")
@@ -332,7 +332,7 @@ class BuildScript:
             self.cmd(f"git checkout tritonbuildref", check_exitcode=True)
         else:
             self.cmd(
-                f"  git clone --recursive --single-branch --depth=1 -b {tag} {org}/{repo}.git {subdir}; git --git-dir {subdir}/.git log --oneline -1",
+                f"  git clone --recursive --single-branch --depth=1 -b {tag} {org}/{repo}.git {subdir}; git --no-pager --git-dir {subdir}/.git log --oneline -1",
                 check_exitcode=True,
             )
             self.cmd("}" if target_platform() == "windows" else "fi")
@@ -586,6 +586,8 @@ def backend_cmake_args(images, components, be, install_dir, library_paths):
         args = tensorrt_cmake_args()
     elif be == "tensorrtllm":
         args = tensorrtllm_cmake_args(images)
+    elif be == "tensorflow" and FLAGS.enable_rocm:
+        args = tensorflow_rocm_cmake_args()
     else:
         args = []
 
@@ -930,6 +932,40 @@ def fastertransformer_cmake_args():
 def tensorrtllm_cmake_args(images):
     cargs = []
     cargs.append(cmake_backend_enable("tensorrtllm", "USE_CXX11_ABI", True))
+    return cargs
+
+
+def tensorflow_rocm_cmake_args():
+    """Return ROCm-specific CMake arguments for TensorFlow backend."""
+    cargs = []
+    cargs.append(
+        cmake_backend_arg("tensorflow",
+            "TRITON_BUILD_ROCM_HOME",
+            None,
+            "/opt/rocm/"
+        )
+    )
+    cargs.append(
+        cmake_backend_arg("tensorflow",
+            "TRITON_CORE_REPO_TAG",
+            None,
+            "rocm7.2_r25.12"
+        )
+    )
+    cargs.append(
+        cmake_backend_arg("tensorflow",
+            "TRITON_BACKEND_REPO_TAG",
+            None,
+            "rocm7.2_r25.12"
+        )
+    )
+    cargs.append(
+        cmake_backend_arg("tensorflow",
+            "TRITON_TENSORFLOW_DOCKER_IMAGE",
+            None,
+            "rocm/tensorflow:rocm7.2-py3.10-tf2.20-dev"
+        )
+    )
     return cargs
 
 
@@ -2417,6 +2453,25 @@ def backend_build(
             "python",
             "https://github.com/ROCm",
         )
+    elif be == "tensorflow" and FLAGS.enable_rocm:
+        cmake_script.gitclone(
+            "triton-inference-server-tensorflow_backend", 
+            "rocm7.2_r24.03", 
+            "tensorflow_backend", 
+            "https://github.com/ROCm"
+        )
+        cmake_script.mkdir("tensorflow_backend/build")
+        cmake_script.cwd("tensorflow_backend/build")
+        cmake_script.cmake(
+            backend_cmake_args(images, components, be, repo_install_dir, library_paths)
+        )
+        cmake_script.makeinstall()
+        cmake_script.mkdir(os.path.join(install_dir, "backends"))
+        cmake_script.rmdir(os.path.join(install_dir, "backends", be))
+        cmake_script.cpdir(
+            os.path.join(repo_install_dir, "backends", be),
+            os.path.join(install_dir, "backends"),
+        )
     else:
         cmake_script.gitclone(backend_repo(be), tag, be, github_organization)
 
@@ -2453,6 +2508,9 @@ def backend_build(
             backend_cmake_args(images, components, be, repo_install_dir, library_paths)
         )
         cmake_script.makeinstall()
+    elif be == "tensorflow" and FLAGS.enable_rocm:
+        # TensorFlow ROCm backend is already built above, skip normal build
+        pass
     else:
         cmake_script.mkdir(repo_build_dir)
         cmake_script.cwd(repo_build_dir)
@@ -3142,7 +3200,7 @@ if __name__ == "__main__":
         "--ort-branch",
         required=False,
         type=str,
-        default="target_batch_compile",
+        default="rocm7.2_internal_testing",
         help="ONNX Runtime (ROCm) git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
@@ -3156,7 +3214,7 @@ if __name__ == "__main__":
         "--migraphx-branch",
         required=False,
         type=str,
-        default="release/rocm-rel-7.2",
+        default="develop",
         help="MIGraphX git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
