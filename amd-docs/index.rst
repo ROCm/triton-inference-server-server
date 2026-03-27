@@ -8,12 +8,14 @@
 Triton Inference Server on ROCm documentation
 ********************************************************************
 
+Use Triton Inference Server on ROCm to to serve large language models, computer vision models,
+recommender systems, and custom pipelines, all from a single platform.
+
 Triton Inference Server is a high-performance model server for machine learning
 inference, developed upstream by
 `NVIDIA <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__.
-It supports a wide range of model types and deep learning frameworks--including
-Pytorch, Tensorflow, ONNX runtime, python, vLLM and more--making it possible to serve large language models, computer
-vision models, recommender systems, and custom pipelines, all from a single platform. Triton Inference
+It supports a wide range of model types and deep learning frameworks, including
+Pytorch, Tensorflow, ONNX runtime, python, vLLM and more. Triton Inference
 Server handles concurrent model execution, dynamic batching, model ensembles, and streaming
 inference, maximizing throughput and GPU/CPU utilization for production deployments at scale.
 

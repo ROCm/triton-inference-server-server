@@ -5,7 +5,7 @@
 .. _triton-inference-server-on-rocm-installation:
 
 ********************************************************************
-Triton Inference Server installation on ROCm
+Triton Inference Server on ROCm installation
 ********************************************************************
 
 System requirements
@@ -35,7 +35,7 @@ Docker is the recommended method to set up a Triton Inference Server environment
 as it avoids dependency conflicts.  The tested, prebuilt image includes Triton Inference Server, Python, 
 ROCm, and all other requirements.
 
-1. Pull the Docker image, this docker image is built on Ubuntu 24.04 and ROCm 7.2 with onnxruntime and python backends enabled.
+1. Pull the Docker image; this docker image is built on Ubuntu 24.04 and ROCm 7.2.0 with ONNX runtime and Python backends enabled.
 
    .. code-block:: bash
 
@@ -74,7 +74,7 @@ ROCm, and all other requirements.
 Build from source
 --------------------------------------------------------------------------------------
 
-Triton Inference Server on ROCm can be run directly by setting up a Docker container from scratch, users can build the Docker image with Ubuntu or Debian distributions.
+Triton Inference Server on ROCm can be run directly by setting up a Docker container from scratch.
 
 1. Clone the `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__ repository and enter the directory.
 
@@ -118,4 +118,5 @@ After the build completes, you can run the Docker container using the same comma
 Test the Triton Inference Server installation
 ======================================================================================
 
-After launching Triton using the ``docker run`` command, you should see the model repository load successfully and your models shown as READY in the server logs.
+After launching Triton using the ``docker run`` command, you should see the model repository load
+successfully. Your models will also show as "READY" in the server logs.
