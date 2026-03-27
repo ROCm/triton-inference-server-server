@@ -8,11 +8,13 @@
 What is Triton Inference Server?
 ********************************************************************
 
-Triton Inference Server is a highly scalable inference serving platform, developed upstream by
-`NVIDIA <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__,
-that supports multiple backends and is optimized for production LLM workloads. Triton Inference
-Server on ROCm integrates AMD ROCm libraries, optimized kernel backends, and expanded support
-for LLM inference, providing efficient execution paths for transformer‑based models.
+Triton Inference Server is an high-performance model server for general machine learning
+inference, developed by
+`NVIDIA <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__.
+It supports a wide range of model types and deep learning frameworks, handles concurrent model
+execution and dynamic batching, and maximizes GPU/CPU utilization for production deployments.
+Triton Inference Server on ROCm integrates AMD ROCm libraries and optimized kernel backends,
+delivering efficient inference across all supported model types and frameworks on AMD Instinct GPUs.
 
 Features and use cases
 ====================================================================
@@ -25,9 +27,8 @@ Features and use cases
 
 Triton Inference Server provides the following key features:
 
-- **Multi-Framework Backends:** Serve models from PyTorch, TensorFlow, ONNX Runtime,
-  OpenVINO, and the Python backend, with CPU and GPU execution, including ROCm-enabled
-  backends (for example, PyTorch-ROCm, ONNX Runtime ROCm EP) for AMD Instinct GPUs.
+- **Multi-Framework Backends:** Serve models from multiple frameworks using multiple backends, 
+  including ROCm-enabled backends on AMD Instinct GPUs, with CPU and GPU execution.
 
 - **Dynamic and Sequence Batching:** Automatically batch individual requests to
   improve throughput while meeting latency targets, with sequence batching for
@@ -50,7 +51,7 @@ Triton Inference Server provides the following key features:
   perf analyzer to size instances, tune batching, and validate SLAs.
 
 - **Cloud-Native Deployment:** Ship as Docker images with Helm charts and Kubernetes
-  integrations (for example, KServe), supporting autoscaling, canary rollouts, and
+  integrations, supporting autoscaling, canary rollouts, and
   multi-tenant isolation.
 
 - **Extensibility with Python/Custom Backends:** Implement custom backends and
@@ -65,6 +66,9 @@ Triton Inference Server is commonly used in the following scenarios:
 
 - **Computer Vision and Multimodal Inference:** Serve image, video, and audio
   models with pre/post-processing pipelines as ensembles.
+
+- **Recommendation Systems:** Deploy recommendation and ranking models with
+  dynamic batching and ensemble pipelines for real-time personalization.
 
 - **Batch and Offline Scoring:** Run large-scale, cost-efficient batch inference
   jobs integrated with data pipelines and object storage.
@@ -86,14 +90,14 @@ Why Triton Inference Server?
 
 Triton Inference Server is well suited for production ML/AI serving for the following reasons:
 
-- **Unified serving stack across frameworks:** Serve ONNX and third-party models
-  (and custom runtimes via Python) on AMD Instinct GPUs without bespoke
-  per-framework services.
+- **Unified serving stack across frameworks:** Serve models from any supported
+  backend on AMD Instinct GPUs through a single serving platform, without
+  bespoke per-framework services.
 
 - **High utilization with batching and concurrency:** Dynamic batching, sequence
   batching, and concurrent instances help meet strict SLAs while maximizing GPU use.
 
-- **ROCm performance and flexibility:** Leverage FP16/BF16 execution and HIP-accelerated
+- **ROCm performance and flexibility:** Leverage HIP-accelerated
   kernels on Instinct MI300 series GPUs, with portable deployment from on-prem to cloud.
 
 - **Enterprise-ready operations:** Cloud-native packaging, rich telemetry, and model
