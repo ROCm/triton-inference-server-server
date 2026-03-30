@@ -28,8 +28,6 @@
 source ../common.sh
 source ../../common/util.sh
 
-TRITON_REPO_ORGANIZATION=${TRITON_REPO_ORGANIZATION:="http://github.com/triton-inference-server"}
-
 SERVER_ARGS="--model-repository=${MODELDIR}/examples/python_backend/models --backend-directory=${BACKEND_DIR} --log-verbose=1"
 SERVER_LOG="./examples_server.log"
 
@@ -72,7 +70,7 @@ if [ "$TEST_JETSON" == "0" ] && [ ${PYTHON_ENV_VERSION} != "8" ]; then
     pip install -U "jax[cuda12]"
 fi
 
-git clone ${TRITON_REPO_ORGANIZATION}/python_backend -b $PYTHON_BACKEND_REPO_TAG
+git clone $(triton_repo_url python_backend) -b $PYTHON_BACKEND_REPO_TAG
 cd python_backend
 
 # Example 1
