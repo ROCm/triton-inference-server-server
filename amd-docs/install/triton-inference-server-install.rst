@@ -11,7 +11,7 @@ Triton Inference Server on ROCm installation
 System requirements
 ====================================================================
 
-To use Triton Inference Server `25.12 <https://github.com/ROCm/triton-inference-server-server/tree/rocm7.2_r25.12>`__, you need the following prerequisites:
+To use Triton Inference Server `25.12 <https://github.com/ROCm/triton-inference-server-server/tree/release/r25.12%2Bamd.1>`__, you need the following prerequisites:
 
 - **ROCm version:** `7.2.0 <https://rocm.docs.amd.com/en/docs-7.2.0/>`__
 - **Operating system:** Ubuntu 24.04
