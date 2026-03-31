@@ -145,3 +145,5 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
         tritonserver --model-repository=/models --log-verbose=1
 
    Keep this terminal running. You should see Triton load the ``dummy_migraphx_onnx`` model and report that the model is ready.
+
+3. Use the python script or ``perf_analyzer`` tool from the `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__ repository to send client requests for end-to-end benchmark tests.
