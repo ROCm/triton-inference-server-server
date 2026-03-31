@@ -13,7 +13,7 @@ recommender systems, and custom pipelines, all from a single platform.
 
 Triton Inference Server is a high-performance model server for machine learning inference.
 It supports a wide range of model types and deep learning frameworks, including
-Pytorch, Tensorflow, ONNX runtime, python, vLLM and more. Triton Inference
+Pytorch, Tensorflow, ONNX runtime, Python, vLLM and more. Triton Inference
 Server handles concurrent model execution, dynamic batching, model ensembles, and streaming
 inference, maximizing throughput and GPU/CPU utilization for production deployments at scale.
 
