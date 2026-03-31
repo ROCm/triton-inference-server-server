@@ -17,11 +17,6 @@ subtrees:
   - file: examples/triton-inference-server-examples.rst
     title: Run a Triton Inference Server example
 
-- caption: Reference
-  entries:
-  - url: https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html
-    title: User guide and API reference (upstream)
-
 - caption: About
   entries:
   - url: https://github.com/ROCm/triton-inference-server-server/blob/amd-integration/CONTRIBUTING.md

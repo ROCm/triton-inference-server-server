@@ -145,17 +145,3 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
         tritonserver --model-repository=/models --log-verbose=1
 
    Keep this terminal running. You should see Triton load the ``dummy_migraphx_onnx`` model and report that the model is ready.
-
-3. Send an inference request with ``perf_analyzer``.
-
-   In a separate terminal, use Triton's ``perf_analyzer`` to validate and measure performance.
-
-   .. code-block:: bash
-
-      # Launch the Triton SDK container
-      docker run -it --rm --net=host \
-        nvcr.io/nvidia/tritonserver:25.12-py3-sdk \
-        /bin/bash
-
-      # Inside the container, run perf_analyzer
-      perf_analyzer -m dummy_migraphx_onnx -b 1 --concurrency-range 1:8 --input-data=random
