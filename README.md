@@ -198,12 +198,7 @@ docker run \
 Use the Triton SDK container to run performance tests, by default test requests are sent to localhost so please run the test client container on the same machine
 
 ```bash
-# Start the SDK container
-docker run -it --rm --net=host \
-  nvcr.io/nvidia/tritonserver:24.04-py3-sdk \
-  /bin/bash
-
-# Inside the container, run performance analyzer
+run performance analyzer
 perf_analyzer -m <model_name>  --input-data=<your input data file>
 ```
 
