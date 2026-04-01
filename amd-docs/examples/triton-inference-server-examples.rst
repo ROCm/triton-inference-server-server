@@ -142,7 +142,7 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
         -v $PWD/model_repository:/models \
         -v $PWD/migraphx_cache:/migraphx_cache \
         rocm/tritoninferenceserver:tritoninferenceserver-25.12.amd1_rocm7.2_ubuntu24.04_py3.12 \
-        tritonserver --model-repository=/models --log-verbose=1
+        tritonserver --model-repository=/models --exit-on-error=false
 
    Keep this terminal running. You should see Triton load the ``dummy_migraphx_onnx`` model and report that the model is ready.
 
