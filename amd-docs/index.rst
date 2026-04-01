@@ -8,7 +8,7 @@
 Triton Inference Server on ROCm documentation
 ********************************************************************
 
-Use Triton Inference Server on ROCm to to serve large language models, computer vision models,
+Use Triton Inference Server on ROCm to serve large language models, computer vision models,
 recommender systems, and custom pipelines, all from a single platform.
 
 Triton Inference Server is a high-performance model server for machine learning inference.

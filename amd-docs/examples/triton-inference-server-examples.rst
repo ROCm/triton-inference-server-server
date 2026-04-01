@@ -64,7 +64,7 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
 
    .. code-block:: python
 
-      # save as create_dummy_onnx.py (run with: python create_dummy_onnx.py)
+      # save as create_dummy_onnx.py under your current working directory (run with: python create_dummy_onnx.py)
       import os
       import numpy as np
       import onnx
@@ -74,7 +74,7 @@ This example shows how to deploy and run a simple ONNX model using Triton Infere
       HIDDEN_SIZE = 16
       OUTPUT_SIZE = 4
 
-      MODEL_DIR = "$PWD/model_repository/dummy_migraphx_onnx/0"
+      MODEL_DIR = os.path.join(os.getcwd(), "model_repository", "dummy_migraphx_onnx", "0")
       MODEL_PATH = os.path.join(MODEL_DIR, "model.onnx")
       os.makedirs(MODEL_DIR, exist_ok=True)
 
