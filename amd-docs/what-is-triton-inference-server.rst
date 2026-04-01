@@ -8,7 +8,7 @@
 What is Triton Inference Server?
 ********************************************************************
 
-Triton Inference Server is an high-performance model server for general machine learning inference.
+Triton Inference Server is a high-performance model server for general machine learning inference.
 It supports a wide range of model types and deep learning frameworks, handles concurrent model
 execution and dynamic batching, and maximizes GPU/CPU utilization for production deployments.
 Triton Inference Server on ROCm integrates AMD ROCm libraries and optimized kernel backends,
