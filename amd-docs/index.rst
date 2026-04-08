@@ -39,6 +39,9 @@ The Triton Inference Server public repository is located at `https://github.com/
 
     * :doc:`Install Triton Inference Server <install/triton-inference-server-install>`
 
+  .. grid-item-card:: Examples
+
+    * :doc:`Run a Triton Inference Server example <examples/triton-inference-server-examples>`
 
 To contribute to the documentation, refer to
 `Contributing to ROCm <https://rocm.docs.amd.com/en/latest/contribute/contributing.html>`_.
