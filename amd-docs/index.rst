@@ -39,9 +39,6 @@ The Triton Inference Server public repository is located at `https://github.com/
 
     * :doc:`Install Triton Inference Server <install/triton-inference-server-install>`
 
-  .. grid-item-card:: Reference
-
-      * `User guide and API reference (upstream) <https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html>`__
 
 To contribute to the documentation, refer to
 `Contributing to ROCm <https://rocm.docs.amd.com/en/latest/contribute/contributing.html>`_.
