@@ -2317,7 +2317,7 @@ def install_vllm():
     df = """
 # Install vLLM pre-built wheel for ROCm
 RUN pip3 install --no-cache-dir uv
-RUN uv pip install --system --no-cache vllm --pre \\
+RUN uv pip install --system --no-cache --break-system-packages vllm --pre \\
         --extra-index-url https://wheels.vllm.ai/rocm/nightly/rocm721 \\
         --upgrade
 """
