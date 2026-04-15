@@ -78,7 +78,7 @@ DEFAULT_TRITON_VERSION_MAP = {
     "ort_openvino_version": "2025.4.0",
     "standalone_openvino_version": "2025.4.0",
     "dcgm_version": "4.4.2-1",
-    "vllm_version": "0.11.1",
+    "vllm_version": "0.11.1", # ROCm is using 0.19.0
     "rhel_py_version": "3.12.3",
 }
 
@@ -2486,7 +2486,10 @@ def backend_clone(
     clone_script.comment()
     clone_script.mkdir(build_dir)
     clone_script.cwd(build_dir)
-    clone_script.gitclone(backend_repo(be), tag, be, github_organization)
+    repo = backend_repo(be)
+    if be == "vllm" and FLAGS.enable_rocm:
+        repo = "triton-inference-server-vllm_backend"
+    clone_script.gitclone(repo, tag, be, github_organization)
 
     repo_target_dir = os.path.join(install_dir, "backends")
     clone_script.mkdir(repo_target_dir)
@@ -3529,6 +3532,9 @@ if __name__ == "__main__":
                 github_organization = FLAGS.github_organization
 
             if be == "vllm":
+                if FLAGS.enable_rocm:
+                    github_organization = "https://github.com/ROCm"
+                    backends[be] = "rocm7.2_r25.12"
                 backend_clone(
                     be,
                     cmake_script,
