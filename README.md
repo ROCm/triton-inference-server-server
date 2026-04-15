@@ -38,13 +38,13 @@ This repository contains ROCm-enabled builds of Triton Inference Server for AMD 
 
 - **ONNX Runtime Backend** - Done
 - **Python Backend** - Done
-- **vLLM Backend** - enabled, upgrading WIP
+- **vLLM Backend** - Done
 - **PyTorch Backend**  - enabled, upgrading WIP
 - **Tensorflow Backend** - Done
 
 ### ROCm-Enabled Repository Branches
 
-The following table lists the ROCm-enabled Triton Inference Server component repositories. All components are based on **Triton Inference Server r25.12**.
+The following table lists the ROCm-enabled Triton Inference Server component repositories. Components are based on **Triton Inference Server r25.12** except tensorflow backend.
 
 > **Note**: These repositories contain ROCm-enabled source code. For the remaining repositories used to build the Triton Server artifacts without need of ROCm enablement, we use them as-is from the Triton Inference Server GitHub repository https://github.com/triton-inference-server.
 
