@@ -2316,6 +2316,7 @@ def install_vllm():
     """Return Dockerfile fragment to install vLLM for ROCm."""
     df = """
 # Install vLLM pre-built wheel for ROCm
+RUN apt-get update && apt-get install -y --no-install-recommends libopenmpi-dev && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --no-cache-dir uv
 RUN uv pip install --system --no-cache --break-system-packages vllm --pre \\
         --extra-index-url https://wheels.vllm.ai/rocm/nightly/rocm721 \\
