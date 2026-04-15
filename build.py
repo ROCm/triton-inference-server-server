@@ -1661,7 +1661,12 @@ RUN apt-get update \\
 
     if "vllm" in backends:
         if enable_rocm:
-            df += install_vllm()
+            if FLAGS.linux_distro == "debian":
+                # vLLM is built from scratch in base image for debian
+                pass
+            else:
+                # vLLM engine is installed through wheel for ubuntu
+                df += install_vllm()
         else:
             df += f"""
 # Install required packages for vLLM models

@@ -130,6 +130,13 @@ git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-serv
 cd triton-inference-server-server
 bash scripts/build_debian12_rocm_72_base.sh
 ```
+**OR** if vLLM engine is required (for vLLM backend or simply using vLLM engine in python backend)  
+This creates the same base image for Debian12 distro, installing all depdencies and building vLLM from scratch.
+```bash
+cd triton-inference-server-server
+bash scripts/build_debian12_rocm_72_vllm_base.sh
+```
+
 
 Step2: build tritonserver docker image
 ```bash
@@ -157,7 +164,7 @@ python3 build.py \
 - `--endpoint=grpc --endpoint=http`: Enable both HTTP and gRPC inference protocols
 - `--backend=onnxruntime`: Build with onnxruntime backend
 - `--backend=python`: Build with python backend
-- `--backend=vllm`: Build with vllm backend (vllm engine installed)
+- `--backend=vllm`: Build with vllm backend (vllm installed in base image)
 - `--backend=tensorflow`: Build with tensorflow backend
 
 
