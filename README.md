@@ -38,13 +38,13 @@ This repository contains ROCm-enabled builds of Triton Inference Server for AMD 
 
 - **ONNX Runtime Backend** - Done
 - **Python Backend** - Done
-- **vLLM Backend** - enabled, upgrading WIP
+- **vLLM Backend** - Done
 - **PyTorch Backend**  - enabled, upgrading WIP
 - **Tensorflow Backend** - Done
 
 ### ROCm-Enabled Repository Branches
 
-The following table lists the ROCm-enabled Triton Inference Server component repositories. All components are based on **Triton Inference Server r25.12**.
+The following table lists the ROCm-enabled Triton Inference Server component repositories. Components are based on **Triton Inference Server r25.12** except tensorflow backend.
 
 > **Note**: These repositories contain ROCm-enabled source code. For the remaining repositories used to build the Triton Server artifacts without need of ROCm enablement, we use them as-is from the Triton Inference Server GitHub repository https://github.com/triton-inference-server.
 
@@ -56,7 +56,7 @@ The following table lists the ROCm-enabled Triton Inference Server component rep
 | Third Party | [ROCm/triton-inference-server-third_party](https://github.com/ROCm/triton-inference-server-third_party) | `rocm7.2_r25.12` |
 | ONNX Runtime Backend | [ROCm/triton-inference-server-onnxruntime_backend](https://github.com/ROCm/triton-inference-server-onnxruntime_backend) | `rocm7.2_r25.12` |
 | Python Backend | [ROCm/triton-inference-server-python_backend](https://github.com/ROCm/triton-inference-server-python_backend) | `rocm7.2_r25.12` |
-| vLLM Backend | [ROCm/triton-inference-server-vllm_backend](https://github.com/ROCm/triton-inference-server-vllm_backend) | `TBD` |
+| vLLM Backend | [ROCm/triton-inference-server-vllm_backend](https://github.com/ROCm/triton-inference-server-vllm_backend) | `rocm7.2_r25.12` |
 | Pytorch Backend | [ROCm/triton-inference-server-pytorch_backend](https://github.com/ROCm/triton-inference-server-pytorch_backend) | `TBD` |
 | Tensorflow Backend | [ROCm/triton-inference-server-tensorflow_backend](https://github.com/ROCm/triton-inference-server-tensorflow_backend/tree/rocm7.2_r24.03) | `rocm7.2_r24.03` |
 
@@ -95,6 +95,8 @@ python3 build.py \
   --endpoint=http \
   --backend=onnxruntime \
   --backend=python \
+  --backend=vllm \
+  --backend=tensorflow \
   --linux-distro=ubuntu
 ```
 
@@ -103,6 +105,8 @@ python3 build.py \
 - `--endpoint=grpc --endpoint=http`: Enable both HTTP and gRPC inference protocols
 - `--backend=onnxruntime`: Build with onnxruntime backend
 - `--backend=python`: Build with python backend
+- `--backend=vllm`: Build with vllm backend (vllm engine installed)
+- `--backend=tensorflow`: Build with tensorflow backend
 - `--linux-distro`: Build on Ubuntu 24.04 OS
 
 
@@ -126,14 +130,13 @@ git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-serv
 cd triton-inference-server-server
 bash scripts/build_debian12_rocm_72_base.sh
 ```
-
-OR if you want to install vLLM in final tritronserver artifacts
+**OR** if vLLM engine is required (for vLLM backend or simply using vLLM engine in python backend)  
+This creates the same base image for Debian12 distro, installing all depdencies and building vLLM from scratch.
 ```bash
-git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-server.git
 cd triton-inference-server-server
 bash scripts/build_debian12_rocm_72_vllm_base.sh
 ```
-This still creates base image localhost/debian12_rocm7.2 but with Debian12+ROCm7.2+vLLM+deps
+
 
 Step2: build tritonserver docker image
 ```bash
@@ -150,6 +153,7 @@ python3 build.py \
   --endpoint=http \
   --backend=onnxruntime \
   --backend=python \
+  --backend=vllm \
   --backend=tensorflow \
   --linux-distro=debian
 ```
@@ -160,10 +164,11 @@ python3 build.py \
 - `--endpoint=grpc --endpoint=http`: Enable both HTTP and gRPC inference protocols
 - `--backend=onnxruntime`: Build with onnxruntime backend
 - `--backend=python`: Build with python backend
+- `--backend=vllm`: Build with vllm backend (vllm installed in base image)
 - `--backend=tensorflow`: Build with tensorflow backend
 
 
-*The above example builds tritonserver artifact with both onnxruntime and python backends.
+*The above example builds tritonserver artifact with both onnxruntime, python, vllm and tensorflow backends.
 
 ## Run Triton Server
 
