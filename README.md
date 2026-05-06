@@ -50,15 +50,15 @@ The following table lists the ROCm-enabled Triton Inference Server component rep
 
 | Component | Repository | Branch |
 |-----------|------------|--------|
-| Server | [ROCm/triton-inference-server-server](https://github.com/ROCm/triton-inference-server-server) | `rocm7.2_r25.12` |
+| Server | [ROCm/triton-inference-server-server](https://github.com/ROCm/triton-inference-server-server) | `rocm7.2.3_r25.12` |
 | Core | [ROCm/triton-inference-server-core](https://github.com/ROCm/triton-inference-server-core) | `rocm7.2_r25.12` |
 | Backend | [ROCm/triton-inference-server-backend](https://github.com/ROCm/triton-inference-server-backend) | `rocm7.2_r25.12` |
 | Third Party | [ROCm/triton-inference-server-third_party](https://github.com/ROCm/triton-inference-server-third_party) | `rocm7.2_r25.12` |
-| ONNX Runtime Backend | [ROCm/triton-inference-server-onnxruntime_backend](https://github.com/ROCm/triton-inference-server-onnxruntime_backend) | `rocm7.2_r25.12` |
+| ONNX Runtime Backend | [ROCm/triton-inference-server-onnxruntime_backend](https://github.com/ROCm/triton-inference-server-onnxruntime_backend) | `rocm7.2.3_r25.12` |
 | Python Backend | [ROCm/triton-inference-server-python_backend](https://github.com/ROCm/triton-inference-server-python_backend) | `rocm7.2_r25.12` |
 | vLLM Backend | [ROCm/triton-inference-server-vllm_backend](https://github.com/ROCm/triton-inference-server-vllm_backend) | `rocm7.2_r25.12` |
 | Pytorch Backend | [ROCm/triton-inference-server-pytorch_backend](https://github.com/ROCm/triton-inference-server-pytorch_backend) | `rocm7.2_r25.12` |
-| Tensorflow Backend | [ROCm/triton-inference-server-tensorflow_backend](https://github.com/ROCm/triton-inference-server-tensorflow_backend/tree/rocm7.2_r24.03) | `rocm7.2_r24.03` |
+| Tensorflow Backend | [ROCm/triton-inference-server-tensorflow_backend](https://github.com/ROCm/triton-inference-server-tensorflow_backend/tree/rocm7.2.3_r24.03) | `rocm7.2.3_r24.03` |
 
 
 ## Build Triton Inference Server
@@ -69,15 +69,15 @@ The following table lists the ROCm-enabled Triton Inference Server component rep
 
 - Docker installed and running
 - AMD GPU with ROCm support
-- ROCm 7.2 or compatible version installed on the host
+- ROCm 7.2.3 or compatible version installed on the host
 
-The following instructions are for building on **Ubuntu 24.04** with ROCm 7.2.
+The following instructions are for building on **Ubuntu 24.04** with ROCm 7.2.3.
 
-Step1: build base docker image with Ubuntu 24.04+ROCm7.2+deps
+Step1: build base docker image with Ubuntu 24.04+ROCm7.2.3+deps
 ```bash
-git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-server.git
+git clone -b rocm7.2.3_r25.12 https://github.com/ROCm/triton-inference-server-server.git
 cd triton-inference-server-server
-bash scripts/build_ubuntu24.04_rocm_72_base.sh
+bash scripts/build_ubuntu24.04_rocm_723_base.sh
 ```
 Step2: build tritonserver docker image
 
@@ -122,15 +122,15 @@ python3 build.py \
 
 - Docker installed and running
 - AMD GPU with ROCm support
-- ROCm 7.2 or compatible version installed on the host
+- ROCm 7.2.3 or compatible version installed on the host
 
-The following instructions are for building on **Debian 12** with ROCm 7.2.
+The following instructions are for building on **Debian 12** with ROCm 7.2.3.
 
-Step1: build base docker image with Debian12+ROCm7.2
+Step1: build base docker image with Debian12+ROCm7.2.3
 ```bash
-git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-server.git
+git clone -b rocm7.2.3_r25.12 https://github.com/ROCm/triton-inference-server-server.git
 cd triton-inference-server-server
-bash scripts/build_debian12_rocm_72_base.sh
+bash scripts/build_debian12_rocm_723_base.sh
 ```
 **OR** if vLLM engine is required (for vLLM backend or simply using vLLM engine in python backend)  
 This creates the same base image for Debian12 distro, installing all depdencies and building vLLM from scratch.
