@@ -1924,7 +1924,7 @@ LABEL com.nvidia.build.ref={}
 
 def get_base_image_rocm_debian():
     """Return base image for ROCm Debian"""
-    return "localhost/debian12_rocm7.2.3"
+    return "localhost/debian12_rocm7.14.0-prev"
 
 
 def get_base_image_rocm_ubuntu():
@@ -2388,6 +2388,33 @@ def backend_build(
                 be,
                 "https://github.com/ROCm",
             )
+        cmake_script.comment(
+            "Patch ONNX Runtime ROCm backend templates so MIGraphX deb install pulls required ROCm deps"
+        )
+        cmake_script.cmd(
+            "if grep -R -q \"dpkg -i \\*\\.deb\" onnxruntime; then "
+            "grep -R -l \"dpkg -i \\*\\.deb\" onnxruntime | "
+            "xargs sed -i \"s#dpkg -i \\*\\.deb#dpkg -i --force-depends *.deb#\"; "
+            "fi"
+        )
+        cmake_script.comment(
+            "Patch ONNX Runtime build template to relax flatbuffers header version guard"
+        )
+        cmake_script.cmd(
+            "if grep -R -q \"pip install numpy packaging\" onnxruntime; then "
+            "grep -R -l \"pip install numpy packaging\" onnxruntime | "
+            "xargs sed -i \"s#pip install numpy packaging &&#pip install numpy packaging \\\\&\\\\& find onnxruntime -name '*.fbs.h' -print0 | xargs -0 sed -i -E 's/FLATBUFFERS_VERSION_MAJOR == [0-9]+/FLATBUFFERS_VERSION_MAJOR >= 0/; s/FLATBUFFERS_VERSION_MINOR == [0-9]+/FLATBUFFERS_VERSION_MINOR >= 0/; s/FLATBUFFERS_VERSION_REVISION == [0-9]+/FLATBUFFERS_VERSION_REVISION >= 0/' \\\\&\\\\&#\"; "
+            "fi"
+        )
+        cmake_script.comment(
+            "Patch ONNX Runtime build template to avoid failing on compiler warnings"
+        )
+        cmake_script.cmd(
+            "if grep -R -q -- \"--build_wheel\" onnxruntime; then "
+            "grep -R -l -- \"--build_wheel\" onnxruntime | "
+            "xargs sed -i \"s#--build_wheel#--build_wheel --compile_no_warning_as_error#\"; "
+            "fi"
+        )
     elif be == "python" and FLAGS.enable_rocm:
         # Use AMD-specific python_backend fork for ROCm support
         cmake_script.gitclone(
@@ -2457,6 +2484,15 @@ def backend_build(
         cmake_script.comment("")
         cmake_script.cmake(
             backend_cmake_args(images, components, be, repo_install_dir, library_paths)
+        )
+        cmake_script.comment(
+            "Patch generated Dockerfile.ort so MIGraphX .deb install pulls required ROCm deps"
+        )
+        cmake_script.cmd(
+            "if find . -name Dockerfile.ort -type f | grep -q Dockerfile.ort; then "
+            "find . -name Dockerfile.ort -type f | "
+            "xargs sed -i \"s#dpkg -i \\*\\.deb#dpkg -i --force-depends *.deb#\"; "
+            "fi"
         )
         cmake_script.makeinstall()
     elif be == "tensorflow" and FLAGS.enable_rocm:
@@ -3154,7 +3190,7 @@ if __name__ == "__main__":
         "--ort-branch",
         required=False,
         type=str,
-        default="rocm7.2_internal_testing",
+        default="add_hip_graph",
         help="ONNX Runtime (ROCm) git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
@@ -3168,7 +3204,7 @@ if __name__ == "__main__":
         "--migraphx-branch",
         required=False,
         type=str,
-        default="release/rocm-rel-7.2",
+        default="develop",
         help="MIGraphX git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
