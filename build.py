@@ -967,7 +967,7 @@ def tensorflow_rocm_cmake_args():
         cmake_backend_arg("tensorflow",
             "TRITON_TENSORFLOW_DOCKER_IMAGE",
             None,
-            "rocm/tensorflow:rocm7.2.3-py3.10-tf2.20-dev"
+            "localhost/debian12_rocm7.14.0-prev_tensorflow"
         )
     )
     return cargs
@@ -2434,7 +2434,7 @@ def backend_build(
     elif be == "tensorflow" and FLAGS.enable_rocm:
         cmake_script.gitclone(
             "triton-inference-server-tensorflow_backend", 
-            "rocm7.2.3_r24.03", 
+            "rocm7.14-prev_r24.03", 
             "tensorflow_backend", 
             "https://github.com/ROCm"
         )

@@ -39,11 +39,17 @@ function(hipify cuda_dir in_excluded_file_patterns out_generated_cc_files out_ge
 message(STATUS "File list ${srcs} from ${cuda_dir} ")
 message(STATUS "Project Root ${REPO_ROOT} ")
 
+  set(hipify_seen_outputs)
   foreach(f ${srcs})
     message("Processing ${f}")
     file(RELATIVE_PATH cuda_f_rel "${REPO_ROOT}" ${f})
     string(REPLACE "cuda" "rocm" rocm_f_rel ${cuda_f_rel})
     set(f_out "${CMAKE_CURRENT_BINARY_DIR}/amdgpu/${rocm_f_rel}")
+    if(f_out IN_LIST hipify_seen_outputs)
+      message(STATUS "Skipping duplicate hipify output path: ${f_out}")
+      continue()
+    endif()
+    list(APPEND hipify_seen_outputs ${f_out})
     add_custom_command(
       OUTPUT ${f_out}
       COMMAND Python3::Interpreter ${hipify_tool}
