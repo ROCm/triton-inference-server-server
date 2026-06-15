@@ -591,6 +591,12 @@ def backend_cmake_args(images, components, be, install_dir, library_paths):
     else:
         args = []
 
+    core_repo_tag = components["core"]
+    backend_repo_tag = components["backend"]
+    if be == "tensorflow" and FLAGS.enable_rocm:
+        core_repo_tag = "rocm7.2_r25.12"
+        backend_repo_tag = "rocm7.2_r25.12"
+
     cargs = args + [
         cmake_backend_arg(be, "CMAKE_BUILD_TYPE", None, cmake_build_type),
         cmake_backend_arg(be, "CMAKE_INSTALL_PREFIX", "PATH", install_dir),
@@ -598,9 +604,9 @@ def backend_cmake_args(images, components, be, install_dir, library_paths):
             be, "TRITON_REPO_ORGANIZATION", "STRING", FLAGS.github_organization
         ),
         cmake_backend_arg(be, "TRITON_COMMON_REPO_TAG", "STRING", components["common"]),
-        cmake_backend_arg(be, "TRITON_CORE_REPO_TAG", "STRING", components["core"]),
+        cmake_backend_arg(be, "TRITON_CORE_REPO_TAG", "STRING", core_repo_tag),
         cmake_backend_arg(
-            be, "TRITON_BACKEND_REPO_TAG", "STRING", components["backend"]
+            be, "TRITON_BACKEND_REPO_TAG", "STRING", backend_repo_tag
         ),
     ]
 
@@ -1945,16 +1951,16 @@ def create_build_dockerfiles(
         base_image = "mcr.microsoft.com/dotnet/framework/sdk:4.8"
     elif target_platform() == "rhel":
         raise KeyError("A base image must be specified when targeting RHEL")
-    elif FLAGS.enable_gpu:
-        base_image = "nvcr.io/nvidia/tritonserver:{}-py3-min".format(
-            FLAGS.upstream_container_version
-        )
     elif FLAGS.enable_rocm:
         # Only onnxruntime and python backends share the same base image (debian or ubuntu)
         if FLAGS.linux_distro == "debian":
             base_image = get_base_image_rocm_debian()
         else:
             base_image = get_base_image_rocm_ubuntu()
+    elif FLAGS.enable_gpu:
+        base_image = "nvcr.io/nvidia/tritonserver:{}-py3-min".format(
+            FLAGS.upstream_container_version
+        )
     else:
         base_image = "ubuntu:24.04"
 
@@ -2221,6 +2227,14 @@ def core_build(
     cmake_script.cmake(
         core_cmake_args(components, backends, cmake_dir, repo_install_dir)
     )
+    if FLAGS.enable_rocm and ("tensorflow" in backends):
+        cmake_script.comment(
+            "Avoid duplicate LLVM CommandLine registration when loading TensorFlow backend"
+        )
+        cmake_script.cmd(
+            "find . -name shared_library.cc -exec "
+            "sed -i 's/RTLD_NOW | RTLD_LOCAL/RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND/' {} +"
+        )
     cmake_script.makeinstall()
 
     if target_platform() == "windows":
@@ -3190,7 +3204,7 @@ if __name__ == "__main__":
         "--ort-branch",
         required=False,
         type=str,
-        default="add_hip_graph",
+        default="batch1_fix",
         help="ONNX Runtime (ROCm) git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
