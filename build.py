@@ -973,7 +973,7 @@ def tensorflow_rocm_cmake_args():
         cmake_backend_arg("tensorflow",
             "TRITON_TENSORFLOW_DOCKER_IMAGE",
             None,
-            "localhost/debian12_rocm7.14.0-prev_tensorflow"
+            "localhost/debian12_rocm7.14.0-rc1_tensorflow"
         )
     )
     return cargs
@@ -1930,7 +1930,7 @@ LABEL com.nvidia.build.ref={}
 
 def get_base_image_rocm_debian():
     """Return base image for ROCm Debian"""
-    return "localhost/debian12_rocm7.14.0-prev"
+    return "localhost/debian12_rocm7.14.0-rc1"
 
 
 def get_base_image_rocm_ubuntu():
@@ -3204,7 +3204,7 @@ if __name__ == "__main__":
         "--ort-branch",
         required=False,
         type=str,
-        default="batch1_fix",
+        default="rocm7.14_internal_testing",
         help="ONNX Runtime (ROCm) git branch when building from source. Used by onnxruntime backend.",
     )
     parser.add_argument(
