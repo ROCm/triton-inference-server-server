@@ -25,12 +25,12 @@ delivering efficient inference across all supported model types and frameworks o
 
   The ROCm port of Triton Inference Server is under active development, and some features are not yet available. 
   For the most up-to-date feature support, refer to the ``README`` in the 
-  `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__ repository.
+  `https://github.com/AMD-Ecosystem/triton-inference-server-server <https://github.com/AMD-Ecosystem/triton-inference-server-server>`__ repository.
 
-Triton Inference Server is part of the `ROCm-LLMExt toolkit
+Triton Inference Server is part of the `AMD LLM Extension toolkit
 <https://rocm.docs.amd.com/projects/rocm-llmext/en/docs-26.03/>`__.
 
-The Triton Inference Server public repository is located at `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__.
+The Triton Inference Server public repository is located at `https://github.com/AMD-Ecosystem/triton-inference-server-server <https://github.com/AMD-Ecosystem/triton-inference-server-server>`__.
 
 .. grid:: 2
   :gutter: 3
@@ -44,6 +44,6 @@ The Triton Inference Server public repository is located at `https://github.com/
     * :doc:`Run a Triton Inference Server example <examples/triton-inference-server-examples>`
 
 To contribute to the documentation, refer to
-`Contributing to ROCm <https://rocm.docs.amd.com/en/latest/contribute/contributing.html>`_.
+`Contributing to Triton Inference Server <https://github.com/AMD-Ecosystem/triton-inference-server-server/blob/main/CONTRIBUTING.md>`__.
 
 You can find licensing information on the :doc:`Licensing <about/license>` page.

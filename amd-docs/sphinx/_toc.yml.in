@@ -19,7 +19,7 @@ subtrees:
 
 - caption: About
   entries:
-  - url: https://github.com/ROCm/triton-inference-server-server/blob/amd-integration/CONTRIBUTING.md
+  - url: https://github.com/AMD-Ecosystem/triton-inference-server-server/blob/amd-integration/CONTRIBUTING.md
     title: Contribute to Triton Inference Server
   - file: about/license.rst
     title: License

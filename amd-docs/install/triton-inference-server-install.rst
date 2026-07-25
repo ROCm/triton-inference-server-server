@@ -11,7 +11,7 @@ Triton Inference Server on ROCm installation
 System requirements
 ====================================================================
 
-To use Triton Inference Server `25.12 <https://github.com/ROCm/triton-inference-server-server/tree/release/r25.12%2Bamd.1>`__, you need the following prerequisites:
+To use Triton Inference Server `25.12 <https://github.com/AMD-Ecosystem/triton-inference-server-server/tree/release/r25.12%2Bamd.1>`__, you need the following prerequisites:
 
 - **ROCm version:** `7.2.0 <https://rocm.docs.amd.com/en/docs-7.2.0/>`__
 - **Operating system:** Ubuntu 24.04
@@ -76,11 +76,11 @@ Build from source
 
 Triton Inference Server on ROCm can be run directly by setting up a Docker container from scratch.
 
-1. Clone the `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__ repository and enter the directory.
+1. Clone the `https://github.com/AMD-Ecosystem/triton-inference-server-server <https://github.com/AMD-Ecosystem/triton-inference-server-server>`__ repository and enter the directory.
 
    .. code-block:: bash
       
-      git clone -b rocm7.2_r25.12 https://github.com/ROCm/triton-inference-server-server.git
+      git clone -b rocm7.2_r25.12 https://github.com/AMD-Ecosystem/triton-inference-server-server.git
       cd triton-inference-server-server
       bash scripts/build_ubuntu24.04_rocm_72_base.sh
 

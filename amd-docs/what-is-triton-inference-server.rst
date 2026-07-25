@@ -21,7 +21,7 @@ Features and use cases
 
   The ROCm port of Triton Inference Server is under active development, and some features are not yet available. 
   For the most up-to-date feature support, refer to the ``README`` in the 
-  `https://github.com/ROCm/triton-inference-server-server <https://github.com/ROCm/triton-inference-server-server>`__ repository.
+  `https://github.com/AMD-Ecosystem/triton-inference-server-server <https://github.com/AMD-Ecosystem/triton-inference-server-server>`__ repository.
 
 Triton Inference Server provides the following key features:
 
