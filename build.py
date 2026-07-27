@@ -973,7 +973,7 @@ def tensorflow_rocm_cmake_args():
         cmake_backend_arg("tensorflow",
             "TRITON_TENSORFLOW_DOCKER_IMAGE",
             None,
-            "localhost/debian12_rocm7.14.0-rc1_tensorflow"
+            "localhost/debian12_rocm7.14.0_tensorflow"
         )
     )
     return cargs
@@ -1930,7 +1930,7 @@ LABEL com.nvidia.build.ref={}
 
 def get_base_image_rocm_debian():
     """Return base image for ROCm Debian"""
-    return "localhost/debian12_rocm7.14.0-rc1"
+    return "localhost/debian12_rocm7.14.0"
 
 
 def get_base_image_rocm_ubuntu():
